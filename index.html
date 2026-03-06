@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1714">
+  <title>Shuttle — Edogawa Badminton</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">Shuttle<span>.</span></div>
+  <div class="login-sub">江戸川区 えどねっと</div>
+
+  <div class="login-card">
+    <div class="login-card-title">🔐 Sign in to えどねっと</div>
+
+    <div class="login-field">
+      <label class="login-label">利用者ID (User ID)</label>
+      <input class="login-input" type="text" id="loginId" placeholder="Your user ID" autocomplete="username" inputmode="text">
+    </div>
+
+    <div class="login-field">
+      <label class="login-label">パスワード (Password)</label>
+      <input class="login-input" type="password" id="loginPw" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <label class="login-remember">
+      <input type="checkbox" id="rememberMe" checked>
+      <span>Save credentials on this device</span>
+    </label>
+
+    <button class="btn-login" onclick="doLogin()">
+      <span>Login &amp; Open えどねっと</span>
+      <span>→</span>
+    </button>
+
+    <div class="login-note">
+      Your credentials are saved locally on this device only.<br>
+      They are never sent anywhere except えどねっと.
+    </div>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ── HEADER ── -->
+  <div class="app-header">
+    <div class="header-eyebrow">江戸川区 えどねっと</div>
+    <div class="header-title">Shuttle<span>.</span></div>
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Checking status…</span>
+    </div>
+    <button class="header-login-btn" id="headerLoginBtn" onclick="showLogin()" style="display:none">⚙ Account</button>
+  </div>
+
+  <!-- ── CONTENT ── -->
+  <div class="page-content">
+
+    <!-- ════ HOME PAGE ════ -->
+    <div class="page active" id="page-home">
+
+      <!-- Countdown -->
+      <div class="section-label">⏱ Countdown</div>
+      <div class="countdown-row">
+        <div class="cd-box"><span class="cd-num" id="cdDays">--</span><span class="cd-label">Days</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdHours">--</span><span class="cd-label">Hours</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdMins">--</span><span class="cd-label">Mins</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdSecs">--</span><span class="cd-label">Secs</span></div>
+      </div>
+      <div style="text-align:center; font-size:11px; color:var(--muted); margin-bottom:16px; font-weight:700; letter-spacing:1px; text-transform:uppercase;" id="cdLabel">…</div>
+
+      <!-- Launch button -->
+      <button onclick="launchEdonet()" class="launch-btn">
+        <span>Login &amp; Open えどねっと</span>
+        <span class="arrow">→</span>
+      </button>
+
+      <!-- Calendar -->
+      <div class="card">
+        <div class="card-title">📅 March 2026</div>
+        <div class="cal-grid" id="calContainer"></div>
+        <div class="cal-legend">
+          <div class="leg"><div class="leg-dot" style="background:#1a1714;"></div>Today</div>
+          <div class="leg"><div class="leg-dot" style="background:#d97706;"></div>Opens (1st)</div>
+          <div class="leg"><div class="leg-dot" style="background:#dc2626;"></div>Deadline (10th)</div>
+          <div class="leg"><div class="leg-dot" style="background:#16a34a;"></div>Vacancy (25/26)</div>
+        </div>
+      </div>
+
+      <!-- Stats summary -->
+      <div class="section-label">📊 My Applications</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="statTotal" style="color:var(--accent2)">0</div>
+          <div class="stat-label">Applied</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statWon" style="color:var(--win)">0</div>
+          <div class="stat-label">Won</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="statPending" style="color:var(--warn)">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+
+      <!-- Live scraped slots -->
+      <div class="section-label">🔴 Live Available Slots</div>
+      <div class="card" id="liveCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-title" style="margin:0">From えどねっと</div>
+          <button onclick="refreshSlots()" id="refreshBtn" style="
+            background:var(--accent);color:white;border:none;border-radius:100px;
+            padding:5px 14px;font-size:11px;font-weight:700;cursor:pointer;
+            font-family:'Nunito',sans-serif;letter-spacing:0.5px;
+          ">↻ Refresh</button>
+        </div>
+        <div id="liveSlots">
+          <div class="empty">
+            <div class="empty-icon">🔌</div>
+            Run <strong>server.py</strong> to load live data.<br>
+            <code style="font-size:11px;color:var(--accent)">python3 server.py</code>
+          </div>
+        </div>
+        <div id="lastScraped" style="font-size:10px;color:var(--muted);margin-top:10px;text-align:right;font-family:'JetBrains Mono',monospace;"></div>
+      </div>
+
+    </div>
+
+    <!-- ════ CHECKLIST PAGE ════ -->
+    <div class="page" id="page-checklist">
+
+      <div class="section-label">Progress</div>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span style="font-weight:700;font-size:14px">Application Steps</span>
+          <span id="progressText" style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">0 of 6 complete</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="checklistContainer"></div>
+      </div>
+
+    </div>
+
+    <!-- ════ TRACKER PAGE ════ -->
+    <div class="page" id="page-tracker">
+
+      <div class="card">
+        <div class="card-title">📝 Log Application</div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:span 2">
+            <label class="form-label">Facility / District</label>
+            <select class="form-select" id="slotFacility">
+              <option value="">Choose hall…</option>
+              <option>臨海町コミュニティ会館 (Rinkaichou)</option>
+              <option>北葛西コミュニティ会館 (Kitakasai)</option>
+              <option>西葛西コミュニティ会館 (Nishikasai)</option>
+              <option>長島コミュニティ会館 (Nagashima)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:span 2">
+            <label class="form-label">Date & Time</label>
+            <input type="datetime-local" class="form-input" id="slotDate">
+          </div>
+        </div>
+        <button class="btn-add" onclick="addSlot()">＋ Add Application</button>
+      </div>
+
+      <div class="section-label">Applications</div>
+      <div class="slot-list" id="slotList"></div>
+
+    </div>
+
+    <!-- ════ TIPS PAGE ════ -->
+    <div class="page" id="page-tips">
+
+      <div class="card">
+        <div class="card-title">🏆 Win Strategy</div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">🎯</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Target off-peak slots</div>
+            <div class="tip-desc">Weekday mornings (9 AM–noon) and weekday evenings see far fewer applicants than Saturday/Sunday afternoons. Apply there first.</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">🗺️</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Spread across all 5 districts</div>
+            <div class="tip-desc">Apply to 中央, 小松川, 葛西, 小岩 and 東部 simultaneously. Note: 総合文化センター and 小岩アーバンプラザ are closed for renovation in 2026 — fewer courts means higher competition!</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">⚡</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Be ready at noon on the 25th/26th</div>
+            <div class="tip-desc">Vacancy slots open at exactly 12:00. Log in 5 mins early, have your search pre-configured (バドミントン) and book the instant they appear.</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">📬</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Read your メッセージ inbox</div>
+            <div class="tip-desc">「予約完了のご連絡」 = booking confirmed ✓ (no action needed). 「予約取消のご連絡」 = booking cancelled. Check after the 10th.</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">📅</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Apply on day 1 (1st at 9 AM)</div>
+            <div class="tip-desc">Lottery odds are the same regardless of when you apply within the window, but applying on the 1st ensures you never miss the window by forgetting.</div>
+          </div>
+        </div>
+
+        <div class="tip-item">
+          <div class="tip-icon-wrap">♻️</div>
+          <div class="tip-body-text">
+            <div class="tip-title">Cancel unused slots quickly</div>
+            <div class="tip-desc">If you win a slot you can't use, cancel it promptly — the system monitors for unused bookings and can restrict your future access.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Key dates summary -->
+      <div class="card">
+        <div class="card-title">🗓️ Key Dates Every Month</div>
+        <div style="display:grid;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:700">1st, 9:00 AM</span>
+            <span style="font-size:12px;color:var(--warn);font-weight:700">Lottery opens</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:700">10th, 10:00 PM</span>
+            <span style="font-size:12px;color:var(--danger);font-weight:700">Apply deadline</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:700">After 10th</span>
+            <span style="font-size:12px;color:var(--muted);font-weight:700">Results in メッセージ</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:700">25th noon</span>
+            <span style="font-size:12px;color:var(--win);font-weight:700">Central/Kasai vacancy</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+            <span style="font-size:13px;font-weight:700">26th noon</span>
+            <span style="font-size:12px;color:var(--win);font-weight:700">Koiwa/Tobu vacancy</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- end page-content -->
+
+  <!-- ── BOTTOM NAV ── -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="tab-home" onclick="switchPage('home')">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">Home</span>
+    </button>
+    <button class="nav-tab" id="tab-checklist" onclick="switchPage('checklist')">
+      <span class="tab-icon">✅</span>
+      <span class="tab-label">Steps</span>
+    </button>
+    <button class="nav-tab" id="tab-tracker" onclick="switchPage('tracker')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">Track</span>
+    </button>
+    <button class="nav-tab" id="tab-tips" onclick="switchPage('tips')">
+      <span class="tab-icon">💡</span>
+      <span class="tab-label">Tips</span>
+    </button>
+  </nav>
+
+</div><!-- end app-shell -->
+
+<!-- Toast -->
+<div id="toast" style="
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1a1714; color:white; padding:10px 20px; border-radius:100px;
+  font-size:13px; font-weight:700; font-family:'Nunito',sans-serif;
+  opacity:0; transition:all 0.25s; pointer-events:none; white-space:nowrap; z-index:200;
+"></div>
+
+<style>
+  #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+
+<script src="app.js"></script>
+</body>
+</html>
