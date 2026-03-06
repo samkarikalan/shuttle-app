@@ -1,0 +1,42 @@
+name: 🏸 Scrape Badminton Slots
+
+on:
+  schedule:
+    - cron: '0 0,6,12,18 * * *'
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: 🔍 Run scraper
+        env:
+          EDONET_UID: ${{ secrets.EDONET_UID }}
+          EDONET_PW:  ${{ secrets.EDONET_PW }}
+        run: |
+          python scripts/scrape.py
+
+      - name: 💾 Commit updated slot data
+        run: |
+          git config --local user.email "shuttle-bot@github.com"
+          git config --local user.name  "Shuttle Bot"
+          git add slots_data.json
+          git diff --staged --quiet || git commit -m "🏸 Auto-update slot data $(date +'%Y-%m-%d %H:%M JST')"
+          git push
